@@ -1,2 +1,2 @@
 # ethiopia_irrigation
-Detecting Irrigation in the Ethiopia Highlands
+Detecting Irrigation in the Ethiopian Highlands
