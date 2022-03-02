@@ -1,0 +1,44 @@
+parent_dir:  '/Volumes/sel_external/ethiopia_irrigation_share'
+imagery_type: 's2_timeseries'
+train_config: 'class_region_balanced'
+
+INPUT_CHANNELS: 1
+NUM_TIMESTEPS: 36
+NUM_CLASSES: 2
+DIM_SIZE: 64
+SHUFFLE_BUFF: 1000
+
+# Training params
+num_epochs: 30
+base_batch_size: 64
+
+calculate_normalization: False
+existing_norm: '20210818-135146'
+
+LOAD_EXISTING: False
+pretrained_model: '20211026-162946'
+CHECKPOINT_DIR: '../data/trained_models'
+tfrecord_dir: 'training_data'
+
+
+thresholds: [0.5]
+model_type: 'baseline'
+
+evi_only: True
+evi_only_datasets: False
+
+train_test_only: False
+test_only: False
+frac_training: 0.7
+
+weight_update_criteria: 'f1' # or 'acc'
+
+log: False
+
+shift_train_val: True
+max_shift: 3
+
+train: True
+test: True
+save_model: True
+save_test_predictions: False
