@@ -42,12 +42,11 @@ def get_args():
     )
 
     args = parser.parse_args()
-    config = yaml.load(open(args.training_params_filename))
+    config = yaml.safe_load(open(args.training_params_filename))
     for k, v in config.items():
         args.__dict__[k] = v
 
     return args
-
 
 
 def return_model(model_name):
@@ -57,9 +56,10 @@ def return_model(model_name):
 
     elif model_name == 'catboost':
         model = CatBoostClassifier(iterations=1000,
-                           task_type="GPU",
+                           # task_type="GPU",
                            devices='0:1',
                            verbose=False,
+                           allow_writing_files=False
                            )
 
     else:
@@ -86,6 +86,7 @@ def return_weighted_arrays(args, generator, regions, model_config):
     print(f'Loading arrays for: {regions}')
 
     for region in regions:
+        print(f'Loading training data for: {region}')
 
         irrig_lm = generator.loss_dict[f'{region}_class_weights'][0]
         noirrig_lm = generator.loss_dict[f'{region}_class_weights'][1]
@@ -102,9 +103,11 @@ def return_weighted_arrays(args, generator, regions, model_config):
         regional_weights_array = np.empty(shape=(0,))
 
         for ix, (features, labels) in ds.enumerate():
-            
-            features = np.reshape(features.numpy(), (features.shape[0], features.shape[1] * features.shape[2]))
+
+            features = features.numpy()
             labels = labels.numpy()
+
+            # features = np.reshape(features, (features.shape[0], features.shape[1] * features.shape[2]))
             weights = regional_weight * (irrig_lm * labels + noirrig_lm * -(labels - 1))
 
             regional_feats_array = np.concatenate((regional_feats_array, features), axis=0)
@@ -240,7 +243,9 @@ def training_function(train_val_regions):
                 outfile = f'{pred_save_dir}/{region}_testset_predictions_model_{dir_time}.csv'
                 test_preds_df.to_csv(outfile)
 
-        out_dir = f'../data/results/batch_results/{args.model_type}'
+        out_dir = f'../data/results/{args.model_type}'
+        if not os.path.exists(out_dir):
+            os.makedirs(out_dir)
         test_df.to_csv(f'{out_dir}/testing_results_{dir_time}_{"-".join(train_val_regions)}.csv')
 
 
@@ -250,7 +255,7 @@ if __name__ == '__main__':
     all_training_regions = ['tana', 'rift'] #, 'alamata', 'koga', 'kobo', 'liben', 'jiga', 'motta']
     
     
-    for ix in range(2,0,-1):
+    for ix in range(2,1,-1):
         training_regions_list = list(itertools.combinations(all_training_regions, ix))
         for regions in tqdm(training_regions_list):
             training_function(list(regions))

@@ -1,9 +1,8 @@
 import numpy as np
-import rasterio
-from sklearn.model_selection import train_test_split
 import pandas as pd
 import tensorflow as tf
 from glob import glob
+import os
 
 class DataGenerator():
     'This selects and prepares training and testing data'
@@ -33,10 +32,11 @@ class DataGenerator():
         self.parent_dir = args.parent_dir
         self.dir_time = dir_time
         self.existing_norm = args.existing_norm
-        
 
         
         self.n_feats = 360
+
+        self.create_dirs()
 
         self.load_tfrecord_filenames()
 
@@ -47,6 +47,14 @@ class DataGenerator():
         self.determine_regional_sample_weighting()
 
         self.load_datasets()
+
+    def create_dirs(self):
+
+        if not os.path.exists(self.args.normalizations_dir):
+            os.makedirs(self.args.normalizations_dir)
+        if not os.path.exists(f'{self.args.trained_models_dir}/{self.args.model_type}'):
+            os.makedirs(f'{self.args.trained_models_dir}/{self.args.model_type}')
+
 
     def load_tfrecord_filenames(self):
 
@@ -64,18 +72,16 @@ class DataGenerator():
             configs = ['training', 'validation', 'testing']
 
 
-
-
         for ix, region in enumerate(self.all_regions):
             for config in configs:
-                dir_name = f'{self.parent_dir}/{region}/{self.tfrecord_dir}/tfrecords'
+                dir_name = f'{self.parent_dir}/{self.tfrecord_dir}/{region}/tfrecords'
                 #print(dir_name)
 
                 if self.train_test_only:
                     tfr_file = glob(f'{dir_name}/{config}_*{self.frac_training}*.tfrecord')[0]
                     print(f'Loading tfrecord: {tfr_file}')
                 else: 
-                    tfr_file = glob(f'{dir_name}/{config}_*.tfrecord')[0]
+                    tfr_file = glob(f'{dir_name}/*{config}_*.tfrecord')[0]
 
 
                 #print(tfr_file)
@@ -85,8 +91,8 @@ class DataGenerator():
         for key in self.tfr_dict.keys():
             if 'training' in key:
                 fn = self.tfr_dict[key].split('/')[-1]
-                irrig_px = int(fn.split('_')[2])
-                noirrig_px = int(fn.split('_')[4].replace('.tfrecord',''))
+                irrig_px = int(fn.split('_')[-3])
+                noirrig_px = int(fn.split('_')[-1].replace('.tfrecord',''))
                 
                 num_training_pixels = irrig_px + noirrig_px
                 
@@ -155,7 +161,7 @@ class DataGenerator():
 
         features = {
                 "features": tf.io.FixedLenSequenceFeature(
-                    [], dtype=tf.int64, allow_missing=True),
+                    [], dtype=tf.float32, allow_missing=True),
                 "label": tf.io.FixedLenFeature([], tf.int64),
             }
 
@@ -183,14 +189,7 @@ class DataGenerator():
 
     def extract_evi(self, features, labels):
 
-        #band_means = tf.cast(tf.reshape(band_means, [36, 10]), tf.float32)
-        #band_stds = tf.cast(tf.reshape(band_stds, [36, 10]), tf.float32)
-        
-        #features = features[..., 0:10]
 
-        # Unnormalize
-        #data = tf.math.multiply(features, band_stds) + band_means
-        
         ts_list = []
         num_bands_per_ts = 10
         
@@ -209,8 +208,6 @@ class DataGenerator():
         # Normalize
         features = tf.math.divide((features[..., None] - 0.2555), 0.16886)
 
-        #print(f'post: {features}')
-
 
         return features, labels
 
@@ -219,9 +216,6 @@ class DataGenerator():
         
         # Cast as float
         features = tf.cast(features, tf.float32)
-        
-        # Divide by 10000
-        features = tf.math.divide(features, 10000)
 
         # Limit to [0, 1]
         features = tf.clip_by_value(features, clip_value_min=0, clip_value_max=1)
@@ -242,14 +236,9 @@ class DataGenerator():
 
         for ts in features:
             shift = np.random.randint(low=-max_shift, high=max_shift+1)
-            #print(ts)
             shifted_features = tf.concat((ts[shift::, ...], ts[0:shift, ...]), axis=0)[None,...]
-            #print(shifted_features)
 
             shifted_features_list.append(shifted_features)
-
-        #print(shifted_features_list)
-        #print(shifted_features_list[0])
 
         features_out = tf.concat(shifted_features_list, axis=0)
 
@@ -270,7 +259,6 @@ class DataGenerator():
             ts_w_chirps = tf.concat([ts_vals, chirps_tiled], axis=-1)
             
             ts_list.append(ts_w_chirps)
-
 
         features = tf.cast(tf.stack(ts_list, axis=1), tf.float32)
 
@@ -339,14 +327,16 @@ class DataGenerator():
             else:
                 funcs_for_ds = []
                 
-                if not self.args.evi_only_datasets:
+                if self.args.evi_only:
+
+                    evi_func = lambda features, labels: self.extract_evi_evi_ds_only(features, labels)
+                    funcs_for_ds.append(evi_func)
+
+                else:
 
                     evi_func = lambda features, labels: self.extract_evi(features, labels)
                     funcs_for_ds.append(evi_func)
 
-                else:
-                    evi_func = lambda features, labels: self.extract_evi_evi_ds_only(features, labels)
-                    funcs_for_ds.append(evi_func)
 
 
             # Add shift by timestep
@@ -402,8 +392,8 @@ class DataGenerator():
                 else:
                     self.ds_dict[f'{config}_{region}'] = ds.batch(self.batch_size_dict[region], drop_remainder=True)
 
-        self.apply_normalizations_and_input_fxs()
-
+        if not self.args.evi_only:
+            self.apply_normalizations_and_input_fxs()
 
         if self.args.model_type not in ['random_forest', 'catboost', 'threshold']:
             print('convert to iter')

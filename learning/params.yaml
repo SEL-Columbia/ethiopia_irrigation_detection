@@ -1,5 +1,4 @@
 parent_dir:  '/Volumes/sel_external/ethiopia_irrigation_share'
-imagery_type: 's2_timeseries'
 train_config: 'class_region_balanced'
 
 INPUT_CHANNELS: 1
@@ -12,20 +11,21 @@ SHUFFLE_BUFF: 1000
 num_epochs: 30
 base_batch_size: 64
 
-calculate_normalization: False
+calculate_normalization: True
+normalizations_dir: '../data/normalizations'
 existing_norm: '20210818-135146'
 
 LOAD_EXISTING: False
 pretrained_model: '20211026-162946'
-CHECKPOINT_DIR: '../data/trained_models'
+trained_models_dir: '../data/trained_models'
+
 tfrecord_dir: 'training_data'
 
-
 thresholds: [0.5]
-model_type: 'baseline'
+model_type: 'catboost'
 
 evi_only: True
-evi_only_datasets: False
+evi_only_datasets: True
 
 train_test_only: False
 test_only: False
