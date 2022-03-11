@@ -143,13 +143,12 @@ def training_function(train_val_regions):
     val_regions   = train_val_regions
     
     ### NEVER CHANGE THE TEST_REGIONS VARIABLE
-    test_regions  = ['tana', 'rift', 'alamata', 'koga', 'kobo', 'liben', 'jiga', 'motta'] #, 'synthetic']
+    test_regions  = ['tana', 'rift', 'alamata', 'koga', 'kobo', 'liben', 'jiga', 'motta']
 
     dir_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     args['DIR_TIME'] = dir_time
 
     generator = DataGenerator(args, dir_time, train_regions)
-
 
     best_results_dict = {}
     current_results_dict = {}
@@ -252,11 +251,14 @@ def training_function(train_val_regions):
 if __name__ == '__main__':
 
 
-    all_training_regions = ['tana', 'rift'] #, 'alamata', 'koga', 'kobo', 'liben', 'jiga', 'motta']
+    all_training_regions = ['tana', 'rift', 'alamata',]#  'koga', 'kobo', 'liben', 'jiga', 'motta']
     
     
-    for ix in range(2,1,-1):
+    for ix in range(3,2,-1):
+
         training_regions_list = list(itertools.combinations(all_training_regions, ix))
+        # print(training_regions_list)
+
         for regions in tqdm(training_regions_list):
             training_function(list(regions))
 

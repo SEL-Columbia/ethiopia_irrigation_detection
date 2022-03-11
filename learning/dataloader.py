@@ -6,11 +6,10 @@ import os
 
 class DataGenerator():
     'This selects and prepares training and testing data'
-    def __init__(self, args, dir_time, training_regions,):
+    def __init__(self, args, dir_time, training_regions):
 
         self.args = args
-
-        self.parent_dir = args.parents_dir
+        self.parent_dir = args.parent_dir
         self.tfrecord_dir = args.tfrecord_dir
         self.train_config = args.train_config
         self.imagery_type = args.imagery_type
@@ -22,12 +21,11 @@ class DataGenerator():
         self.test_only = args.test_only
 
         self.base_batch_size = args.base_batch_size
-        # self.num_images_for_norm = 10000
+        self.num_images_for_norm = 10000
 
         self.all_regions = [ 'tana', 'rift', 'koga', 'kobo', 
                              'alamata', 'liben', 'jiga', 'motta']
 
-                        
 
         self.parent_dir = args.parent_dir
         self.dir_time = dir_time
@@ -36,6 +34,7 @@ class DataGenerator():
         
         self.n_feats = 360
 
+
         self.create_dirs()
 
         self.load_tfrecord_filenames()
@@ -43,9 +42,9 @@ class DataGenerator():
         self.determine_class_balancing_loss()
 
         self.determine_batch_size()
-
+        #
         self.determine_regional_sample_weighting()
-
+        #
         self.load_datasets()
 
     def create_dirs(self):
@@ -98,7 +97,10 @@ class DataGenerator():
                 
                 # Add num irrig px, num no-irrig px, total px
                 self.training_px_dict[key] = [irrig_px, noirrig_px, num_training_pixels]
-        
+
+                # print(f'Key in dictionary: {key}')
+                # print(f'Value: {self.training_px_dict[key]}')
+
         if self.test_only:
             for ix, region in enumerate(self.all_regions):
                 self.training_px_dict[f'{region}_training'] = [1, 1, 1]
@@ -211,7 +213,6 @@ class DataGenerator():
 
         return features, labels
 
-
     def extract_evi_evi_ds_only(self, features, labels):
         
         # Cast as float
@@ -246,7 +247,6 @@ class DataGenerator():
         return features_out, labels
 
 
-
     def s2_timeseries_input_fx(self, chirps_ts, features, label):
 
         chirps_ts = tf.cast(chirps_ts, tf.float32)
@@ -257,7 +257,7 @@ class DataGenerator():
             ts_vals = tf.cast(features[...,ix*num_bands_per_ts:(ix+1)*num_bands_per_ts], tf.float32)
             chirps_tiled = tf.tile(chirps_ts[ix][None,...], [tf.shape(ts_vals)[0]])[...,None]
             ts_w_chirps = tf.concat([ts_vals, chirps_tiled], axis=-1)
-            
+
             ts_list.append(ts_w_chirps)
 
         features = tf.cast(tf.stack(ts_list, axis=1), tf.float32)
@@ -326,16 +326,9 @@ class DataGenerator():
 
             else:
                 funcs_for_ds = []
-                
-                if self.args.evi_only:
 
-                    evi_func = lambda features, labels: self.extract_evi_evi_ds_only(features, labels)
-                    funcs_for_ds.append(evi_func)
-
-                else:
-
-                    evi_func = lambda features, labels: self.extract_evi(features, labels)
-                    funcs_for_ds.append(evi_func)
+                evi_func = lambda features, labels: self.extract_evi_evi_ds_only(features, labels)
+                funcs_for_ds.append(evi_func)
 
 
 
