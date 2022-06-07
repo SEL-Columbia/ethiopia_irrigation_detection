@@ -53,7 +53,7 @@ ethiopia_irrigation_detection
 
 `environment.yml`: This file specifies the Python packages required to run the code contained in this repository. Users can create the necessary Pyhton environment via `conda env create -f environment.yml`.
 
-The `data_and_outputs/` folder is too large to include in this repository. It is instead made available [here](terry_phd_export/projects/ethiopia/ethiopia_irrigation_detection). This folder contains training data, predictions, administrative shapefiles, and phenology maps, all used for in the associated [publication](https://www.frontiersin.org/articles/10.3389/frsen.2022.871942/full). A readme contained within the folder further describes the files saved within. 
+The `data_and_outputs/` folder is too large to include in this repository. It is instead made available [here](https://console.cloud.google.com/storage/browser/terry_phd_export/projects/ethiopia/ethiopia_irrigation_detection). This folder contains training data, predictions, administrative shapefiles, and phenology maps, all used for in the associated [publication](https://www.frontiersin.org/articles/10.3389/frsen.2022.871942/full). A readme contained within the folder further describes the files saved within. 
 
 The `learning/` folder contains all files necessary to train the machine learning-based classification models for irrigation detection. The scripts are all commented throughout and are described below:
 
