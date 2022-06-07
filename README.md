@@ -53,7 +53,7 @@ ethiopia_irrigation_detection
 
 `environment.yml`: This file specifies the Python packages required to run the code contained in this repository. Users can create the necessary Pyhton environment via `conda env create -f environment.yml`.
 
-The `data_and_outputs/` folder is too large to include in this repository. It is instead made available [here](). This folder contains training data, predictions, administrative shapefiles, and phenology maps, all used for in the associated [publication](https://www.frontiersin.org/articles/10.3389/frsen.2022.871942/full). A readme contained within the folder further describes the files saved within. 
+The `data_and_outputs/` folder is too large to include in this repository. It is instead made available [here](terry_phd_export/projects/ethiopia/ethiopia_irrigation_detection). This folder contains training data, predictions, administrative shapefiles, and phenology maps, all used for in the associated [publication](https://www.frontiersin.org/articles/10.3389/frsen.2022.871942/full). A readme contained within the folder further describes the files saved within. 
 
 The `learning/` folder contains all files necessary to train the machine learning-based classification models for irrigation detection. The scripts are all commented throughout and are described below:
 
@@ -77,7 +77,7 @@ The `utility_scripts/` folder contains a series of scripts for interpreting and 
 
 * `utility_scripts/cluster_clean_samples.py`: This script performs cluster cleaning of labeled irrigated and non-irrigated samples, per the Methodology described in this repository's associated paper.
 
-* `utility_scripts/histograms_of_irrigated_plot_sizes.py`: This script creates a histogram of irrigated plot sizes, as is seen in Figure VI-1 of the following [PhD disseration](). 
+* `utility_scripts/histograms_of_irrigated_plot_sizes.py`: This script creates a histogram of irrigated plot sizes, as is seen in Figure VI-1 of the following [PhD disseration](https://storage.googleapis.com/terry_phd_export/thesis/tconlon_phd_dissertation.pdf). 
 
 * `utility_scripts/ks_statistics_calculations.py`: This script calculates the Kolmogorov-Smirnov statistic between regional distributions of irrigated or non-irrigated samples.  
 
