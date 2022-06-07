@@ -49,7 +49,7 @@ ethiopia_irrigation_detection
 │   ├── spectral_unmixing.py
 ```
 
-## Root Level Repository Description
+## Repository Description
 
 `environment.yml`: This file specifies the Python packages required to run the code contained in this repository. Users can create the necessary Pyhton environment via `conda env create -f environment.yml`.
 
